@@ -14,5 +14,7 @@ namespace ChallengeDisney.ViewModel.Movie
         public DateTime CreationDate { get; set; } 
 
         public int Qualification { get; set; }
+
+        public List<int> CharactersId { get; set; }
     }
 }

@@ -7,6 +7,7 @@ using ChallengeDisney.ViewModel.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using ChallengeDisney.Interfaces;
 
 
 namespace ChallengeDisney.Controladores
@@ -16,10 +17,12 @@ namespace ChallengeDisney.Controladores
     public class AuthController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
+        private readonly IMailService _mailService;
 
-        public AuthController(UserManager<User> context)
+        public AuthController(UserManager<User> context, IMailService context2)
         {
             _userManager = context;
+            _mailService = context2;
         }
 
         [HttpPost]
@@ -40,11 +43,13 @@ namespace ChallengeDisney.Controladores
             var user = new User
             {
                 UserName = model.UserName,
-                PasswordHash = model.Password
-
+                Email = model.Email,
+                PasswordHash = model.Password,
+                IsActive = true
             };
 
-            var result = await _userManager.CreateAsync(user, model.Password);
+            var result = await _userManager.CreateAsync(user, model.Password); //culo probando si enverdad funciona
+            var chocolate = "rico :) ";
             
             //manejo de errores
             if (!result.Succeeded)
@@ -56,6 +61,8 @@ namespace ChallengeDisney.Controladores
 
                 });
             }
+
+            await _mailService.SendEmail(user);
 
             return Ok(new
             {

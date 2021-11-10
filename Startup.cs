@@ -21,6 +21,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using SendGrid.Extensions.DependencyInjection;
+using ChallengeDisney.Services;
 
 namespace ChallengeDisney
 {
@@ -77,8 +79,16 @@ namespace ChallengeDisney
             });
             services.AddSingleton(Configuration);
             services.AddScoped<ICharacterRepository, CharacterRepository>();
-            services.AddScoped<IMovieRepository,MovieRepository>();
-        }
+            services.AddScoped<IMovieRepository, MovieRepository>();
+            services.AddScoped<IGenreRepository, GenreRepository>();
+
+            services.AddSendGrid(o => 
+            {
+                o.ApiKey = "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";
+
+            });
+            services.AddSingleton<IMailService, MailService>();
+        }   
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -94,8 +104,8 @@ namespace ChallengeDisney
             
             app.UseAuthorization();
             
-            app.UseAuthorization();
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

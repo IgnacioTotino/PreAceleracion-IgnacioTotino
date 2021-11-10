@@ -18,7 +18,7 @@ namespace ChallengeDisney.Repositorio
 
         public Movie GetMovie(int id)
         {
-            return DbSet.Include(x => x.Genres).FirstOrDefault(y => y.Id == id);
+            return DbSet.Include(x => x.Genres).Include(z => z.Characters).FirstOrDefault(y => y.Id == id);
         }
 
         public List<Movie> GetMovies()

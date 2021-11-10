@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace ChallengeDisney.Interfaces
 {
-    public interface IGenreRepository : IBaseRepository<Genre>
+    public interface IMailService
     {
-        Genre GetGenre(int id);
-
-        List<Genre> GetGenres();
+        Task SendEmail(User user);
     }
 }

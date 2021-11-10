@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 
 namespace ChallengeDisney.ViewModel.Genre
 {
-    public class GenreViewModel
+    public class GenrePostRequestVM
     {
 
+        public string Name { get; set; }
+
+        public string Image { get; set; }
     }
 }

@@ -11,7 +11,7 @@ namespace ChallengeDisney.Contexto
     {
         private const string schema = "MoviesData";
 
-        public DisneyContext(DbContextOptions options) : base(options)
+        public DisneyContext(DbContextOptions<DisneyContext> options) : base(options)
         {
             
         }

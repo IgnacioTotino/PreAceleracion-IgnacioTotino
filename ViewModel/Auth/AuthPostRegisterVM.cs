@@ -13,6 +13,9 @@ namespace ChallengeDisney.ViewModel.Auth
         public string UserName { get; set; }
         
         [Required]
+        public string Email { get; set; }
+
+        [Required]
         [MaxLength(9)]
         public string Password { get; set; }
     }
