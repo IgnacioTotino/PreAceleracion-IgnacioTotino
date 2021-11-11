@@ -9,5 +9,6 @@ namespace ChallengeDisney.Entidades
     public class User : IdentityUser
     {
         public bool IsActive { get; set; }
+        
     }
 }

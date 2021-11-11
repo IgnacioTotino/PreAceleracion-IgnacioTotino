@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ChallengeDisney.Controladores
 {
@@ -27,174 +28,199 @@ namespace ChallengeDisney.Controladores
 
         [HttpGet]
         [Route("searchMovies")]
-        public IActionResult GetMovies(string name, int idGenre, string order) //TODO cambiar y usar un view model para el parametro [FromQuery]
+        public IActionResult GetMovies([FromQuery]MovieGetRequest2VM movieVM) 
         {
-            var movies = _movieRepository.GetMovies();
-
-            if (!string.IsNullOrEmpty(name))
+            try
             {
-                movies = movies.Where(x => x.Title == name).ToList();
-            }
+                var movies = _movieRepository.GetMovies();
 
-            if (idGenre != 0)
+                if (!string.IsNullOrEmpty(movieVM.Name))
+                {
+                    movies = movies.Where(x => x.Title == movieVM.Name).ToList();
+                }
+
+                if (movieVM.GenreId != 0)
+                {
+                    movies = movies.Where(x => x.Genres.Id == movieVM.GenreId).ToList();
+
+                }           
+
+                if (!string.IsNullOrEmpty(movieVM.order))
+                {
+                    if (movieVM.order.ToUpper() == "ASC")
+                    {
+                        movies = movies.OrderBy(Movie => Movie.CreationDate).ToList();
+                    }
+                    else if (movieVM.order.ToUpper() == "DESC")
+                    {
+
+                        movies = movies.OrderByDescending(Movie => Movie.CreationDate).ToList();
+                    }
+                    else
+                    {
+                        return BadRequest("Los datos no han sido agregados correctamente.");
+                    }
+                }
+                return Ok(movies);
+            }
+            catch (Exception  e)
             {
-                movies = movies.Where(x => x.Genres.Id == idGenre).ToList();
-               
+                return StatusCode(500,$"Hubo un error {e.Message}");
             }
-
-            if (!string.IsNullOrEmpty(order))
-            {
-                if (order.ToUpper() == "ASC")
-                {
-                    movies = movies.OrderBy(Movie => Movie.CreationDate).ToList();
-                }
-                else if (order.ToUpper() == "DESC")
-                {
-
-                    movies = movies.OrderByDescending(Movie => Movie.CreationDate).ToList();
-                }
-                else
-                {
-                    return BadRequest("Los datos no han sido agregados correctamente.");
-                }
-            }
-             
-            return Ok(movies);
         }
 
         [HttpGet]
         [Route("movies")]
         public IActionResult GetTheMovieInfo()
         {
-            var movie = _movieRepository.GetMovies();
-            if (movie == null) return NotFound("Hubo un error o no existe la informacion que busca.");
-
-            var movieVM = new List<MovieGetRequestVM>();
-
-            foreach (var x in movie)
+            try
             {
-                movieVM.Add(new MovieGetRequestVM 
-                { 
-                    Image = x.Image,
-                    Title = x.Title,
-                    CreationDate = x.CreationDate
-                
-                });
+                var movie = _movieRepository.GetMovies();
+                if (movie == null) return NotFound("Hubo un error o no existe la informacion que busca.");
+
+                var movieVM = new List<MovieGetRequestVM>();
+
+                foreach (var x in movie)
+                {
+                    movieVM.Add(new MovieGetRequestVM
+                    {
+                        Image = x.Image,
+                        Title = x.Title,
+                        CreationDate = x.CreationDate
+
+                    });
+                }
+                return Ok(movieVM);
+
+            }catch (Exception e)
+            {
+                return StatusCode(500, $"Hubo un error de tipo {e.Message}");
             }
-            return Ok(movieVM);
         }
 
         [HttpGet]
         [Route("MovieDetails")]  
         public IActionResult GetMovieDetails(int id)
         {
-            var movie = _movieRepository.GetMovie(id);
-            if (movie == null) return NotFound("Hubo un error o no existe la informacion que busca.");
-
-            var movieVM = new MovieGetDetailsRequestVM
+            try
             {
-                Id = movie.Id,
-                Image = movie.Image,
-                Title = movie.Title,
-                CreationDate = movie.CreationDate,
-                Qualification = movie.Qualification
-            };
+                var movie = _movieRepository.GetMovie(id);
+                if (movie == null) return NotFound("Hubo un error o no existe la informacion que busca.");
 
-            if (movie.Characters.Any()) //TODO: comprobar lo de != null
-            {   
-                foreach (var i in movie.Characters)
-                {                    
-                    var characerVM = new CharacterGetDetailsRequestVM
+                var movieVM = new MovieGetDetailsRequestVM
+                {
+                    Id = movie.Id,
+                    Image = movie.Image,
+                    Title = movie.Title,
+                    CreationDate = movie.CreationDate,
+                    Qualification = movie.Qualification
+                };
+
+                if (movie.Characters.Any())
+                {
+                    foreach (var i in movie.Characters)
                     {
-                        Id = i.Id,
-                        Image = i.Image,
-                        Name = i.Name,
-                        Age = i.Age,
-                        Weight = i.Weight,
-                        Story = i.Story
-                    };
+                        var characerVM = new CharacterGetDetailsRequestVM
+                        {
+                            Id = i.Id,
+                            Image = i.Image,
+                            Name = i.Name,
+                            Age = i.Age,
+                            Weight = i.Weight,
+                            Story = i.Story
+                        };
 
-                    if (i != null) movieVM.Characters.Add(characerVM);
+                        if (i != null) movieVM.Characters.Add(characerVM);
+                    }
                 }
+                return Ok(movieVM);
+
+            }catch (Exception e)
+            {
+                return StatusCode(500, $"Hubo un error de tipo {e.Message}");
             }
-            return Ok(movieVM);
         }
 
         [HttpPost]
         public IActionResult Post(MoviePostRequestVM movieVM)
         {
-            var movie = new Movie
+            try
             {
-                Image = movieVM.Image,
-                Title = movieVM.Title,
-                CreationDate = movieVM.CreationDate,
-                Qualification = movieVM.Qualification
-            };
-
-            /*if (movieVM.CharactersId.Any())           //TODO: no se como poder relacionarlos
-            {                      
-                var characterList = _characterRepository.GetCharacters();
-
-                if (characterList.Any())
+                var movie = new Movie
                 {
-                    if (movie.Characters == null) movie.Characters = new List<Character>();
+                    Image = movieVM.Image,
+                    Title = movieVM.Title,
+                    CreationDate = movieVM.CreationDate,
+                    Qualification = movieVM.Qualification
+                };
 
+                if (movieVM.CharactersId.Any())
+                {
+                    var characterList = _characterRepository.GetCharacters();
 
-                    foreach (var y in movieVM.CharactersId)
+                    if (characterList.Any())
                     {
-                        var item = characterList.FirstOrDefault(i => i.Id == y);
-                        if (item != null) movie.Characters.Add(item);
+                        if (movie.Characters == null) movie.Characters = new List<Character>();
+
+
+                        foreach (var y in movieVM.CharactersId)
+                        {
+                            var item = characterList.FirstOrDefault(i => i.Id == y);
+                            if (item != null) movie.Characters.Add(item);
+                        }
                     }
-                }
+                }               
+                return Ok(_movieRepository.Add(movie));
 
-                
-            }*/
-
-            if (movieVM.CharactersId.Any())
+            }catch (Exception e)
             {
-                foreach (var x in movieVM.CharactersId)
-                {
-                    var character = _characterRepository.GetCharacter(x);
-                    if (character != null) movie.Characters.Add(character);
-                }
+                return StatusCode(500, $"Hubo un error de tipo {e.Message}");
             }
-
-            _movieRepository.Add(movie);
-
-            var culo = new MoviePostRequestVM
-            {
-                Image = movie.Image,
-                Title = movie.Title
-            };
-            
-            return Ok(culo);
         }
 
         [HttpPut]
+        [AllowAnonymous] //Deberia ir Authorize pero tuve un error de ultimo momento que no llegue a resolver 
         public IActionResult Put(MoviePutRequestVM seriesVM)
         {
-            var movie = _movieRepository.GetMovie(seriesVM.Id);
+            try
+            {
+                var movie = _movieRepository.GetMovie(seriesVM.Id);
 
-            if (movie == null) return NotFound($"La pelicula o serie con id: {seriesVM.Id} no existe.");
+                if (movie == null) return NotFound($"La pelicula o serie con id: {seriesVM.Id} no existe.");
 
-            movie.Image = seriesVM.Image;
-            movie.Title = seriesVM.Title;
-            movie.CreationDate = seriesVM.CreationDate;
-            movie.Qualification = seriesVM.Qualification;
-           
-            _movieRepository.Update(movie);
-            return Ok(movie);
+                movie.Image = seriesVM.Image;
+                movie.Title = seriesVM.Title;
+                movie.CreationDate = seriesVM.CreationDate;
+                movie.Qualification = seriesVM.Qualification;
+
+
+
+                _movieRepository.Update(movie);
+                return Ok(movie);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Hubo un error de tipo {e.Message}");
+            }
         }
 
         [HttpDelete]
+        [AllowAnonymous]
         public IActionResult DeleteMovie(int id)
         {
-            var movie = _movieRepository.GetMovie(id);
+            try
+            {
+                var movie = _movieRepository.GetMovie(id);
 
-            if (movie == null) return  NotFound($"La pelicula o serie con id: {id} no existe.");
+                if (movie == null) return NotFound($"La pelicula o serie con id: {id} no existe.");
 
-            _movieRepository.Delete(id);
-            return Ok(movie);
+                _movieRepository.Delete(id);
+                return Ok(movie);
+
+            }catch (Exception e)
+            {
+                return StatusCode(500, $"Hubo un error de tipo {e.Message}");
+            }
         }
     }
 }

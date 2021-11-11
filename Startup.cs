@@ -70,12 +70,12 @@ namespace ChallengeDisney
             services.AddDbContext<DisneyContext>((services, options) =>
             {
                 options.UseInternalServiceProvider(services);
-                options.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Database=MoviesDb;Integrated Security=True;"); // agregar la ruta a la base de datos a la que se va a conectar 
+                options.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Database=MoviesDb;Integrated Security=True;"); // si lo pasaba al app.setttings me tiraba un error que no levantaba
             });
             services.AddDbContext<UserContext>((services, options) =>
             {
                 options.UseInternalServiceProvider(services);
-                options.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Database=UserDb;Integrated Security=True;"); // agregar la ruta a la base de datos a la que se va a conectar 
+                options.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Database=UserDb;Integrated Security=True;");  // pro eso lo deje hardcodeado
             });
             services.AddSingleton(Configuration);
             services.AddScoped<ICharacterRepository, CharacterRepository>();
@@ -84,7 +84,7 @@ namespace ChallengeDisney
 
             services.AddSendGrid(o => 
             {
-                o.ApiKey = "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";
+                o.ApiKey = ""; //agregar la key
 
             });
             services.AddSingleton<IMailService, MailService>();
